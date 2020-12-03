@@ -1,0 +1,3 @@
+WATER SENSOR
+	Mapped to analog port zero.
+	Call function read_water_level() to read the water level.
