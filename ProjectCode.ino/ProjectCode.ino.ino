@@ -25,9 +25,8 @@ void setup() {
 
 void loop() {
   delay(2000);
-  unsigned int adc_reading = adc_read(WATER_LEVEL_PORT);
-  Serial.println(adc_reading);
-
+  
+  unsigned int water = adc_read(WATER_LEVEL_PORT);
   float f = temperatureRead(true);
   float h = humidity();
 
@@ -35,6 +34,9 @@ void loop() {
   Serial.print(h);
   Serial.print(F("%  Temperature: "));
   Serial.print(f);
+  Serial.print(F("Water: "));
+  Serial.print(water);
+  Serial.print('\n');
 
   lcd.setCursor(0, 1);
   lcd.print(f);
