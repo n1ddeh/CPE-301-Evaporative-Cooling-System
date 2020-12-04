@@ -1,7 +1,7 @@
+// INITIALIZE DHT TEMPERATURE / HUMIDITY SENSOR
 #include "DHT.h"
+#define DHTPIN 2
 #define DHTTYPE DHT11
-
-#define DHTPIN 1
 DHT dht(DHTPIN, DHTTYPE);
 
 // ANALOG
@@ -16,7 +16,6 @@ unsigned char WATER_LEVEL_PORT = 0;
 void setup() {
   adc_init();
   Serial.begin(9600);
-  Serial.println(F("DHTxx test!"));
 
   dht.begin();
 }
