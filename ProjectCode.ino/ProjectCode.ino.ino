@@ -3,6 +3,8 @@
 #define DHTPIN 2
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(8, 7, 6, 5, 4, 3);
 
 // ANALOG
 volatile unsigned char* my_ADMUX = (unsigned char*) 0x7C;
@@ -16,8 +18,9 @@ unsigned char WATER_LEVEL_PORT = 0;
 void setup() {
   adc_init();
   Serial.begin(9600);
-
+  lcd.begin(16, 2);
   dht.begin();
+  lcd.print("Temp:  Humidity:");
 }
 
 void loop() {
@@ -32,6 +35,11 @@ void loop() {
   Serial.print(h);
   Serial.print(F("%  Temperature: "));
   Serial.print(f);
+
+  lcd.setCursor(0, 1);
+  lcd.print(f);
+  lcd.setCursor(7, 1);
+  lcd.print(h);
 }
 
 void adc_init()
