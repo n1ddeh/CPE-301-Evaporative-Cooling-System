@@ -17,12 +17,22 @@ void setup() {
   adc_init();
   Serial.begin(9600);
   Serial.println(F("DHTxx test!"));
+
+  dht.begin();
 }
 
 void loop() {
   delay(2000);
   unsigned int adc_reading = adc_read(WATER_LEVEL_PORT);
   Serial.println(adc_reading);
+
+  float f = temperatureRead(true);
+  float h = humidity();
+
+  Serial.print(F("Humidity: "));
+  Serial.print(h);
+  Serial.print(F("%  Temperature: "));
+  Serial.print(f);
 }
 
 void adc_init()
@@ -84,7 +94,7 @@ float temperatureRead(bool F) {
   return t;
 }
 
-float readHumidity() {
+float humidity() {
   float h = dht.readHumidity();
   if (isnan(h)) {
     Serial.println(F("Failed to read humidity from DHT sensor!"));
