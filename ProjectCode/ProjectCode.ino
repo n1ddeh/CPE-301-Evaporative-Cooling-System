@@ -1,3 +1,6 @@
+#include "DHT.h"
+#include <LiquidCrystal.h>
+
 volatile unsigned char* my_ADMUX = (unsigned char*) 0x7C;
 volatile unsigned char* my_ADCSRB = (unsigned char*) 0x7B;
 volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
@@ -6,14 +9,28 @@ volatile unsigned int* my_ADCL_DATA = (unsigned int*) 0x78;
 
 unsigned char WATER_LEVEL_PORT = 0;
 
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+int greenPin = A0;
+dht sensor;
+
 void setup() {
   adc_init();
   Serial.begin(9600);
+  lcd.begin(16,2); //16 by 2 character display
 }
 
 void loop() {
   unsigned int adc_reading = adc_read(WATER_LEVEL_PORT);
   Serial.println(adc_reading);
+  delay(1000); //wait a sec (recommended for DHT11)
+  sensor.read11(greenPin);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Humidity = ");
+  lcd.print(sensor.humidity);
+  lcd.setCursor(0,1);
+  lcd.print("Temp = ");
+  lcd.print(sensor.temperature);
 }
 
 void adc_init()
