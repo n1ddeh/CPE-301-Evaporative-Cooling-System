@@ -117,7 +117,7 @@ void idle_state()
   *port_b &= 0b01000000; // Turn off other LEDs & fan
   
   // Get water level, temperature, and humidity
-  unsigned int water = water_level();
+  unsigned int w = water_level();
   float t = temperatureRead(true);
   float humi = humidity();
 
@@ -125,7 +125,7 @@ void idle_state()
   lcd_th(temp, humi);
 
   // Check water level.
-  if (water < WATER_LEVEL_THRESHOLD) 
+  if (w < WATER_LEVEL_THRESHOLD) 
   {
     stat = water; // this is the error state
   }
