@@ -152,6 +152,7 @@ void error_state()
 
   // Wait for water level to increase
   while (w < WATER_LEVEL_THRESHOLD) {
+    delay(100);
     w = water_level();
   }
   
@@ -227,6 +228,7 @@ float humidity() {
 
 void lcd_th(float t, float h) 
 {
+  lcd.setCursor(0, 0);
   lcd.print("Temp:  Humidity:");
   lcd.setCursor(0, 1);
   lcd.print(t);
