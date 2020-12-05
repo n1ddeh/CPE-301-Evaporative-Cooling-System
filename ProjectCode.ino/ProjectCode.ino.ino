@@ -65,6 +65,19 @@ void setup() {
 
 void loop() {
   delay(2000);
+        
+  unsigned int water = adc_read(WATER_LEVEL_PORT);
+  float f = temperatureRead(true);
+  float h = humidity();
+
+  Serial.print(F("Humidity: "));
+  Serial.print(h);
+  Serial.print(F("%  Temperature: "));
+  Serial.print(f);
+  Serial.print(F("Water: "));
+  Serial.print(water);
+  Serial.print('\n');
+  
   switch(stat) {
     case off:
       disabled_state();
@@ -81,18 +94,6 @@ void loop() {
     default:
       break;
   }
-      
-  unsigned int water = adc_read(WATER_LEVEL_PORT);
-  float f = temperatureRead(true);
-  float h = humidity();
-
-  Serial.print(F("Humidity: "));
-  Serial.print(h);
-  Serial.print(F("%  Temperature: "));
-  Serial.print(f);
-  Serial.print(F("Water: "));
-  Serial.print(water);
-  Serial.print('\n');
 }
 
 void disabled_state()
@@ -163,6 +164,7 @@ void running_state()
     stat = water;
   }
   else if ( temperatureRead(true) > TEMPERATURE_THRESHOLD_F ) {
+    delay(2000);
     running_state();
   }
   else {
