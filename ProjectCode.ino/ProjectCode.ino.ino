@@ -66,7 +66,7 @@ void setup() {
 void loop() {
   delay(2000);
         
-  unsigned int water = adc_read(WATER_LEVEL_PORT);
+  unsigned int w = adc_read(WATER_LEVEL_PORT);
   float f = temperatureRead(true);
   float h = humidity();
 
@@ -75,7 +75,7 @@ void loop() {
   Serial.print(F("%  Temperature: "));
   Serial.print(f);
   Serial.print(F("Water: "));
-  Serial.print(water);
+  Serial.print(w);
   Serial.print('\n');
   
   switch(stat) {
