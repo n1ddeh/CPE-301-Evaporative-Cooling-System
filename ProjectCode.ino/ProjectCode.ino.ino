@@ -3,6 +3,8 @@
 #define DHTPIN 2
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
+
+// INITIALIZE LCD 
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(8, 7, 6, 5, 4, 3);
 
@@ -13,14 +15,32 @@ volatile unsigned char* my_ADCSRA = (unsigned char*) 0x7A;
 volatile unsigned int* my_ADCH_DATA = (unsigned int*) 0x79;
 volatile unsigned int* my_ADCL_DATA = (unsigned int*) 0x78;
 
+// WATER LEVEL ANALOG PORT A0
 unsigned char WATER_LEVEL_PORT = 0;
 
+// Flags depicting what state we are in.
+enum state {
+   off = 0,
+   idle = 1,
+   temp = 2,
+   water = 3
+};
+
+// Begin in off state.
+enum state stat = off;
+
 void setup() {
+  //Initialize analog ports
   adc_init();
+
+  // Initialzie Serial Port
   Serial.begin(9600);
+
+  // Initialize LCD
   lcd.begin(16, 2);
+
+  // Initialize DHT
   dht.begin();
-  lcd.print("Temp:  Humidity:");
 }
 
 void loop() {
@@ -38,10 +58,7 @@ void loop() {
   Serial.print(water);
   Serial.print('\n');
 
-  lcd.setCursor(0, 1);
-  lcd.print(f);
-  lcd.setCursor(7, 1);
-  lcd.print(h);
+
 }
 
 void adc_init()
@@ -64,7 +81,7 @@ void adc_init()
 }
 
 // Water Level
-int read_water_level()
+int water_level()
 {
   adc_read(WATER_LEVEL_PORT);
 }
@@ -109,4 +126,13 @@ float humidity() {
     Serial.println(F("Failed to read humidity from DHT sensor!"));
   }
   return h;
+}
+
+void lcd_th(float t, float h) 
+{
+  lcd.print("Temp:  Humidity:");
+  lcd.setCursor(0, 1);
+  lcd.print(f);
+  lcd.setCursor(7, 1);
+  lcd.print(h);
 }

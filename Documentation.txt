@@ -1,3 +1,9 @@
 WATER SENSOR
 	Mapped to analog port zero.
-	Call function read_water_level() to read the water level.
+	Call function water_level() to read the water level.
+
+TEMPERATURE / HUMIDITY (DHT11)
+	Data input of DHT mapped to digital port 2.
+	The function temperatureRead(true) will return fahrenheit or temperatureRead(false) for celcius.
+	The function humidity() will return the humidity level as a percentage.
+
