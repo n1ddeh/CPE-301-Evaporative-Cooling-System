@@ -104,7 +104,7 @@ void disabled_state()
   *port_b &= 0b10000001; // Turn off all LEDs
   
   // Listen to PB7 and await high signal
-  while ( (*ddr_b & (1 << 7)) == 0) { }
+  while ( (*pin_b & (1 << 7)) == 0) { }
 
   // Start button pressed and initialize idle state.
   stat = idle;
