@@ -152,7 +152,7 @@ void error_state()
 
   // Wait for water level to increase
   while (w < WATER_LEVEL_THRESHOLD) {
-    delay(100);
+    delay(1000);
     w = water_level();
   }
   
