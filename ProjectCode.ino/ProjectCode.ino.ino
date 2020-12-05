@@ -148,12 +148,13 @@ void error_state()
   lcd.clear();
   lcd.print("INCREASE WATER");
 
-  // Wait for water level to increase
-  while (water_level() < WATER_LEVEL_THRESHOLD) {
-    lcd.setCursor(0, 1);
-    lcd.print(water_level());
-  }
+  unsigned int w = water_level();
 
+  // Wait for water level to increase
+  while (w < WATER_LEVEL_THRESHOLD) {
+    w = water_level();
+  }
+  
   // Water level is now okay
   stat = idle;
   lcd.clear();
