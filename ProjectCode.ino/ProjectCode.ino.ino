@@ -260,6 +260,7 @@ unsigned int adc_read(unsigned char adc_channel_num)
 
 ISR(INT7_vect) {
   if (!stat) {
+    Serial.print("Turning Off");
     disabled_state();
   }
 }
