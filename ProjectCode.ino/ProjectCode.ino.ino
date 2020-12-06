@@ -56,6 +56,7 @@ void setup() {
   PCMSK0 |= 0b10000000;
 
   // Set PB7 as input and PB6, PB5, PB4, PB3, and PB2 as output
+  *port_b &= 0b01111111;
   *ddr_b &= 0b01111111;
   *ddr_b |= 0b01111110;
   // PB7 will be the button
@@ -80,6 +81,8 @@ void loop() {
   Serial.print(F(" Water: "));
   Serial.print(w);
   Serial.print('\n');
+
+  EIMSK |= 0b10000000;
 
   // Choose State Space
   switch(stat) {
@@ -263,8 +266,10 @@ unsigned int adc_read(unsigned char adc_channel_num)
 
 ISR(INT7_vect) {
   if (!stat) {
-    Serial.print("Turning Off");
+    Serial.println("Turning Off");
     return disabled_state();
   }
-  Serial.print("Turning On");
+  Serial.println("Turning On");
+  EIMSK &= 0b01111111; // Disable ISR
+  return;
 }
