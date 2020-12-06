@@ -180,7 +180,7 @@ void running_state()
     Serial.print(f);
     Serial.print('\n');
     lcd_th(f, h);
-    running_state();
+    return running_state();
   }
   else {
     lcd.clear();
@@ -264,6 +264,7 @@ unsigned int adc_read(unsigned char adc_channel_num)
 ISR(INT7_vect) {
   if (!stat) {
     Serial.print("Turning Off");
-    disabled_state();
+    return disabled_state();
   }
+  Serial.print("Turning On");
 }
