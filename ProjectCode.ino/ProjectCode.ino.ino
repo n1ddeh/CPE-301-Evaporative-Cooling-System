@@ -24,7 +24,7 @@ volatile unsigned int* my_ADCL_DATA = (unsigned int*) 0x78;
 unsigned char WATER_LEVEL_PORT = 0;
 
 // THRESHOLDS
-#define TEMPERATURE_THRESHOLD_F 76.0000
+#define TEMPERATURE_THRESHOLD_F 80.0000
 #define TEMPERATURE_THRESHOLD_C 26.6667
 #define WATER_LEVEL_THRESHOLD 100
 
@@ -126,10 +126,10 @@ void idle_state() {
   // Get water level, temperature, and humidity
   unsigned int w = water_level();
   float t = temperatureRead(true);
-  float humi = humidity();
+  float h = humidity();
 
   // Display temperature and humidity to screen
-  lcd_th(t, humi);
+  lcd_th(t, h);
 
   // Check water level.
   if (w < WATER_LEVEL_THRESHOLD) stat = water;
@@ -167,6 +167,7 @@ void running_state()
   *port_b |= 0b00010000; // Enable fan and running LED
   *port_b &= 0b00010000; // Disable other LEDs
   float f = temperatureRead(true);
+  float h = humidity();
 
   // Check water level and temperature
   if (water_level() < WATER_LEVEL_THRESHOLD) stat = water;
@@ -175,11 +176,18 @@ void running_state()
     Serial.print("Temp: ");
     Serial.print(f);
     Serial.print('\n');
+    lcd_th(f, h);
     running_state();
   }
-  else stat = idle;
+  else {
+    lcd.clear();
+    stat = idle;
+  }
 }
 
+/*///////////////////
+ UTILITY FUNCTIONS
+///////////////////*/
 
 // GET WATER LEVEL FROM ANALOG PORT 0
 unsigned int water_level() {
@@ -212,6 +220,10 @@ void lcd_th(float t, float h) {
   lcd.print(h);
 }
 
+/*//////////////////////////////
+    ANALOG/DIGITAL CONVERSION 
+//////////////////////////////*/
+
 // INITIALIZE THE ADC
 void adc_init() {
   // Register A
@@ -236,17 +248,12 @@ unsigned int adc_read(unsigned char adc_channel_num)
   // Clear Analog channel selection bits
   *my_ADMUX &= 0b11100000;
   *my_ADMUX &= 0b11011111;
-
-  if (adc_channel_num > 7)
-  {
+  if (adc_channel_num > 7) {
     adc_channel_num -= 8;
     *my_ADCSRB |= 0b00001000;
   }
   *my_ADMUX += adc_channel_num;
-
   *my_ADCSRA |= 0b01000000;
-
   while ((*my_ADCSRA & 0x40) != 0);
-
   return pow(2 * (*my_ADCH_DATA & (1 << 0)), 8) + pow(2 * (*my_ADCH_DATA & (1 << 1)), 9) + *my_ADCL_DATA; 
 }
