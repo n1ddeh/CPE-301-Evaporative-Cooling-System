@@ -29,7 +29,7 @@ unsigned char WATER_LEVEL_PORT = 0;
 #define WATER_LEVEL_THRESHOLD 100
 
 // Flags depicting what state we are in.
-const enum state {
+enum state {
    off = 0,
    idle = 1,
    temp = 2,
@@ -51,6 +51,9 @@ void setup() {
 
   // Initialize DHT
   dht.begin();
+
+  EIMSK |= 0b10000000;
+  PCMSK0 |= 0b10000000;
 
   // Set PB7 as input and PB6, PB5, PB4, PB3, and PB2 as output
   *ddr_b &= 0b01111111;
