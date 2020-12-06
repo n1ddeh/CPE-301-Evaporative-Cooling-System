@@ -29,7 +29,7 @@ unsigned char WATER_LEVEL_PORT = 0;
 #define WATER_LEVEL_THRESHOLD 100
 
 // Flags depicting what state we are in.
-enum state {
+const enum state {
    off = 0,
    idle = 1,
    temp = 2,
@@ -256,4 +256,10 @@ unsigned int adc_read(unsigned char adc_channel_num)
   *my_ADCSRA |= 0b01000000;
   while ((*my_ADCSRA & 0x40) != 0);
   return pow(2 * (*my_ADCH_DATA & (1 << 0)), 8) + pow(2 * (*my_ADCH_DATA & (1 << 1)), 9) + *my_ADCL_DATA; 
+}
+
+ISR(INT7_vect) {
+  if (!stat) {
+    disabled_state();
+  }
 }
