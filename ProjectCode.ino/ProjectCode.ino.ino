@@ -24,7 +24,7 @@ volatile unsigned int* my_ADCL_DATA = (unsigned int*) 0x78;
 unsigned char WATER_LEVEL_PORT = 0;
 
 // THRESHOLDS
-#define TEMPERATURE_THRESHOLD_F 80.0000
+#define TEMPERATURE_THRESHOLD_F 76.0000
 #define TEMPERATURE_THRESHOLD_C 26.6667
 #define WATER_LEVEL_THRESHOLD 100
 
@@ -77,7 +77,8 @@ void loop() {
   Serial.print(F(" Water: "));
   Serial.print(w);
   Serial.print('\n');
-  
+
+  // Choose State Space
   switch(stat) {
     case off:
       Serial.println("Disabled State");
@@ -100,12 +101,15 @@ void loop() {
   }
 }
 
-void disabled_state()
-{
+/*///////////////////
+  MACHINE STATES
+///////////////////*/
+void disabled_state() { // Or off state
   lcd.clear();
   lcd.noDisplay();
 
   *port_b &= 0b10000001; // Turn off all LEDs
+  *port_b |= 0b00001000; // Turn on Yellow LED
   
   // Listen to PB7 and await high signal
   while ( (*pin_b & (1 << 7)) == 0) { }
@@ -115,8 +119,7 @@ void disabled_state()
   lcd.display();
 }
 
-void idle_state()
-{
+void idle_state() {
   *port_b |= 0b01000000; // Turn on green LED
   *port_b &= 0b01000000; // Turn off other LEDs & fan
   
@@ -126,27 +129,21 @@ void idle_state()
   float humi = humidity();
 
   // Display temperature and humidity to screen
-  lcd_th(temp, humi);
+  lcd_th(t, humi);
 
   // Check water level.
-  if (w < WATER_LEVEL_THRESHOLD) 
-  {
-    stat = water; // this is the error state
-  }
+  if (w < WATER_LEVEL_THRESHOLD) stat = water;
+  
   // Check temperature.
-  else if (t > TEMPERATURE_THRESHOLD_F)
-  {
-    stat = temp;
-  }
+  else if (t > TEMPERATURE_THRESHOLD_F) stat = temp;
 }
 
-void error_state()
-{
+void error_state() {
   *port_b |= 0b00100000; // Turn on red LED
   *port_b &= 0b00100000; // Turn off other LEDs
   
   lcd.clear();
-  lcd.print("INCREASE WATER");
+  lcd.print("Low Water");
 
   unsigned int w = water_level();
 
@@ -154,7 +151,11 @@ void error_state()
   while (w < WATER_LEVEL_THRESHOLD) {
     delay(1000);
     w = water_level();
-  }
+    lcd.setCursor(0, 1);
+    lcd.print("Level:");
+    lcd.setCursor(7, 1);
+    lcd.print(w);
+}
   
   // Water level is now okay
   stat = idle;
@@ -165,23 +166,69 @@ void running_state()
 {
   *port_b |= 0b00010000; // Enable fan and running LED
   *port_b &= 0b00010000; // Disable other LEDs
+  float f = temperatureRead(true);
 
-  if (water_level() < WATER_LEVEL_THRESHOLD) {
-    stat = water;
-  }
-  else if ( temperatureRead(true) > TEMPERATURE_THRESHOLD_F ) {
-    delay(2000);
+  // Check water level and temperature
+  if (water_level() < WATER_LEVEL_THRESHOLD) stat = water;
+  else if ( f > TEMPERATURE_THRESHOLD_F ) {
+    delay(1000);
+    Serial.print("Temp: ");
+    Serial.print(f);
+    Serial.print('\n');
     running_state();
   }
-  else {
-    stat = idle;
-  }
+  else stat = idle;
 }
 
 
-// Water Level
+// GET WATER LEVEL FROM ANALOG PORT 0
 unsigned int water_level() {
   return adc_read(WATER_LEVEL_PORT);
+}
+
+// GET TEMPERATURE FROM DHT11
+float temperatureRead(bool F) {
+  float t;
+  if (F) t = dht.readTemperature(true); // Fahrenheit
+  else t = dht.readTemperature();       // Celsius
+  if (isnan(t)) Serial.println(F("Failed to read temperature from DHT sensor!"));
+  return t;
+}
+
+// GET HUMIDITY FROM DHT11
+float humidity() {
+  float h = dht.readHumidity();
+  if (isnan(h)) Serial.println(F("Failed to read humidity from DHT sensor!"));
+  return h;
+}
+
+// OUTPUT TEMPERATURE AND HUMIDITY TO LCD
+void lcd_th(float t, float h) {
+  lcd.setCursor(0, 0);
+  lcd.print("Temp:  Humidity:");
+  lcd.setCursor(0, 1);
+  lcd.print(t);
+  lcd.setCursor(7, 1);
+  lcd.print(h);
+}
+
+// INITIALIZE THE ADC
+void adc_init() {
+  // Register A
+  *my_ADCSRA |= 0x80; // Set Bit 7 to 1
+  *my_ADCSRA &= 0b11011111; // Clear Bit 5
+  *my_ADCSRA &= 0b11110111; // Clear Bit 3
+  *my_ADCSRA &= 0b11111000; // Clear bits 2-0
+
+  // Register B
+  *my_ADCSRB &= 0b11110111; // Clear bit 3
+  *my_ADCSRB &= 0b11111000; // Clear bit 2-0
+
+  // MUX
+  *my_ADMUX &= 0b01111111; // Clear bit 7
+  *my_ADMUX |= 0b01000000; // Set bit 6
+  *my_ADMUX &= 0b11011111; // Clear bit 5. Right adjusted result.
+  *my_ADMUX &= 0b11100000; // Clear Bits 4-0
 }
 
 unsigned int adc_read(unsigned char adc_channel_num)
@@ -202,55 +249,4 @@ unsigned int adc_read(unsigned char adc_channel_num)
   while ((*my_ADCSRA & 0x40) != 0);
 
   return pow(2 * (*my_ADCH_DATA & (1 << 0)), 8) + pow(2 * (*my_ADCH_DATA & (1 << 1)), 9) + *my_ADCL_DATA; 
-}
-
-float temperatureRead(bool F) {
-  float t;
-  if (F) {
-    t = dht.readTemperature(true);
-  }
-  else {
-    t = dht.readTemperature();
-  }
-  if (isnan(t)) {
-    Serial.println(F("Failed to read temperature from DHT sensor!"));
-  }
-  return t;
-}
-
-float humidity() {
-  float h = dht.readHumidity();
-  if (isnan(h)) {
-    Serial.println(F("Failed to read humidity from DHT sensor!"));
-  }
-  return h;
-}
-
-void lcd_th(float t, float h) 
-{
-  lcd.setCursor(0, 0);
-  lcd.print("Temp:  Humidity:");
-  lcd.setCursor(0, 1);
-  lcd.print(t);
-  lcd.setCursor(7, 1);
-  lcd.print(h);
-}
-
-void adc_init()
-{
-  // Register A
-  *my_ADCSRA |= 0x80; // Set Bit 7 to 1
-  *my_ADCSRA &= 0b11011111; // Clear Bit 5
-  *my_ADCSRA &= 0b11110111; // Clear Bit 3
-  *my_ADCSRA &= 0b11111000; // Clear bits 2-0
-
-  // Register B
-  *my_ADCSRB &= 0b11110111; // Clear bit 3
-  *my_ADCSRB &= 0b11111000; // Clear bit 2-0
-
-  // MUX
-  *my_ADMUX &= 0b01111111; // Clear bit 7
-  *my_ADMUX |= 0b01000000; // Set bit 6
-  *my_ADMUX &= 0b11011111; // Clear bit 5. Right adjusted result.
-  *my_ADMUX &= 0b11100000; // Clear Bits 4-0
 }
