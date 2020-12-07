@@ -53,7 +53,7 @@ void setup() {
   dht.begin();
 
   EIMSK |= 0b10000000;
-  PCMSK0 |= 0b10000000;
+  //PCMSK0 |= 0b10000000;
 
   // Set PB7 as input and PB6, PB5, PB4, PB3, and PB2 as output
   *port_b &= 0b01111111;
@@ -81,8 +81,6 @@ void loop() {
   Serial.print(F(" Water: "));
   Serial.print(w);
   Serial.print('\n');
-
-  EIMSK |= 0b10000000;
 
   // Choose State Space
   switch(stat) {
@@ -117,7 +115,7 @@ void disabled_state() { // Or off state
   *port_b &= 0b10000001; // Turn off all LEDs
   *port_b |= 0b00001000; // Turn on Yellow LED
   
-  // Listen to PB7 and await high signal
+  // Listen to PB7 and await low signal
   while ( (*pin_b & (1 << 7)) == 0) { }
 
   // Start button pressed and initialize idle state.
@@ -264,16 +262,13 @@ unsigned int adc_read(unsigned char adc_channel_num)
   return pow(2 * (*my_ADCH_DATA & (1 << 0)), 8) + pow(2 * (*my_ADCH_DATA & (1 << 1)), 9) + *my_ADCL_DATA; 
 }
 
-
-/*//////////////////////////////
-    ISR 
-//////////////////////////////*/
-
 ISR(INT7_vect) {
-  if (stat) {
+  if (stat) { // We are in a non-off state.
     Serial.println("Turning Off");
     stat = off;
   }
-  Serial.println("Turning On");
-  EIMSK &= 0b01111111; // Disable ISR
+  else { // We are off so turn on.
+    Serial.println("Turning On");
+    stat = idle;
+  }
 }
