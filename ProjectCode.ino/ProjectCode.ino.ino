@@ -264,12 +264,16 @@ unsigned int adc_read(unsigned char adc_channel_num)
   return pow(2 * (*my_ADCH_DATA & (1 << 0)), 8) + pow(2 * (*my_ADCH_DATA & (1 << 1)), 9) + *my_ADCL_DATA; 
 }
 
+
+/*//////////////////////////////
+    ISR 
+//////////////////////////////*/
+
 ISR(INT7_vect) {
-  if (!stat) {
+  if (stat) {
     Serial.println("Turning Off");
-    return disabled_state();
+    stat = off;
   }
   Serial.println("Turning On");
   EIMSK &= 0b01111111; // Disable ISR
-  return;
 }
