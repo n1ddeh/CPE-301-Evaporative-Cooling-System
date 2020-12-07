@@ -52,7 +52,7 @@ void setup() {
   // Initialize DHT
   dht.begin();
 
-  EIMSK |= 0b10000000;
+  //EIMSK |= 0b10000000;
   //PCMSK0 |= 0b10000000;
 
   // Set PB7 as input and PB6, PB5, PB4, PB3, and PB2 as output
@@ -262,6 +262,8 @@ unsigned int adc_read(unsigned char adc_channel_num)
   return pow(2 * (*my_ADCH_DATA & (1 << 0)), 8) + pow(2 * (*my_ADCH_DATA & (1 << 1)), 9) + *my_ADCL_DATA; 
 }
 
+/*
+
 ISR(INT7_vect) {
   if (stat) { // We are in a non-off state.
     Serial.println("Turning Off");
@@ -272,3 +274,5 @@ ISR(INT7_vect) {
     stat = idle;
   }
 }
+
+*/
